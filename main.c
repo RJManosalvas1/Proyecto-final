@@ -1,94 +1,96 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+    #include <stdlib.h>
+    #include <string.h>
 
-FILE *fd;
+    FILE *fpointer;
 
-struct datosPersonales {
-    char nombres[20];
-    char apellidos[20];
-    char celular[10];
+    struct Producto {
+    char producto[50];
+    int cantidad;
+    int precio;
 } datos;
 
-void crear() {
-    char direccion[] = "C:\\Users\\rjman\\Programacion 1\\menu archivos\\archivo.txt";
-    char rpt;
+void ingresar_productos() {
+    struct Producto producto;
+    char continuar;
 
-    fd = fopen(direccion, "wt"); // w (write text) - escribir texto
+    fpointer = fopen("Productos.txt", "a");
 
-    if (fd == NULL) {
-        printf("Error al tratar de crear archivo");
+    if (fpointer == NULL) {
+        fprintf(stderr, "Archivo no encontrado.\n");
         return;
     }
 
-    printf("\n\t.: Creando Directorio de contactos:.\n");
-    fprintf(fd, "\t .:Directorio Telefonico:.\n");
+    printf("\n\t--Creando lista de productos.--\n");
+    fprintf(fpointer, "\t --Lista de productos--\n");
 
     do {
         fflush(stdin);
-        printf("\nNombre : ");
-        fgets(datos.nombres, sizeof(datos.nombres), stdin);
-        printf("\nApellido : ");
-        fgets(datos.apellidos, sizeof(datos.apellidos), stdin);
-        printf("\nCelular : ");
-        fgets(datos.celular, sizeof(datos.celular), stdin);
 
-        fprintf(fd, "\n\nNombre : %s", datos.nombres);
-        fprintf(fd, "\n\nApellido : %s", datos.apellidos);
-        fprintf(fd, "\n\nCelular : %s", datos.celular);
+        printf("Ingrese producto: ");
+        scanf("%s", producto.producto);
 
-        printf("Desea agregar más contactos (s) :");
-        scanf(" %c", &rpt);
+        printf("Ingrese cantidad : ");
+        scanf("%d", &producto.cantidad);
 
-    } while (rpt == 's');
+        printf("Ingrese precio : ");
+        scanf("%d", &producto.precio);
 
-    fclose(fd);
+        fprintf(fpointer, "Producto: %s\nCantidad: %d\nPrecio: %d\n\n",
+                producto.producto, producto.cantidad, producto.precio);
+
+        printf("¿Desea continuar? (s/n): ");
+        scanf(" %c", &continuar);
+
+    } while (continuar == 's' || continuar == 'S');
+
+    fclose(fpointer);
+
+    printf("Datos guardados en el archivo Productos.txt\n");
 }
 
-void agregar() {
-    char direccion[] = "C:\\Users\\rjman\\Programacion 1\\menu archivos\\archivo.txt";
-    char rpt;
+void agregar_productos() {
+    char continuar;
 
-    fd = fopen(direccion, "at"); // at (Add text)
+    fpointer = fopen("Productos.txt", "a");
 
-    if (fd == NULL) {
-        printf("Error al tratar de crear el archivo");
+    if (fpointer == NULL) {
+        fprintf(stderr, "Archivo no encontrado.\n");
         return;
     }
 
     do {
         fflush(stdin);
-        printf("\nNombre : ");
-        fgets(datos.nombres, sizeof(datos.nombres), stdin);
-        printf("\nApellido : ");
-        fgets(datos.apellidos, sizeof(datos.apellidos), stdin);
-        printf("\nCelular : ");
-        fgets(datos.celular, sizeof(datos.celular), stdin);
+        printf("\nProducto : ");
+        fgets(datos.producto, sizeof(datos.producto), stdin);
+        printf("\nCantidad : ");
+        scanf("%d", &datos.cantidad);
+        printf("\nPrecio : ");
+        scanf("%d", &datos.precio);
 
-        fprintf(fd, "\n\nNombre : %s", datos.nombres);
-        fprintf(fd, "\n\nApellido : %s", datos.apellidos);
-        fprintf(fd, "\n\nCelular : %s", datos.celular);
+        fprintf(fpointer, "\n\nProducto : %s", datos.producto);
+        fprintf(fpointer, "\n\nCantidad : %d", datos.cantidad);
+        fprintf(fpointer, "\n\nPrecio : %d", datos.precio);
 
-        printf("\n\t.:Agregar más contactos (s) :");
-        scanf(" %c", &rpt);
+        printf("\n\t.:Agregar más productos (s/n) :");
+        scanf(" %c", &continuar);
 
-    } while (rpt == 's');
+    } while (continuar == 's' || continuar == 'S');
 
-    fclose(fd);
+    fclose(fpointer);
 }
 
-void visualizar() {
+void listar_productos() {
     int c;
-    char direccion[] = "C:\\Users\\rjman\\Programacion 1\\menu archivos\\archivo.txt";
 
-    fd = fopen(direccion, "r");
+    fpointer = fopen("Productos.txt", "r");
 
-    if (fd == NULL) {
-        printf("Error al tratar de abrir el archivo");
+    if (fpointer == NULL) {
+        fprintf(stderr, "Archivo no encontrado.\n");
         return;
     }
 
-    while ((c = fgetc(fd)) != EOF) {
+    while ((c = fgetc(fpointer)) != EOF) {
         if (c == '\n') {
             printf("\n");
         } else {
@@ -96,34 +98,85 @@ void visualizar() {
         }
     }
 
-    fclose(fd);
+    fclose(fpointer);
 }
 
-int main() {
-    int opc;
+void eliminar_producto(const char *nombre) {
+    FILE *Eliminados;
+    int c;
+    int found = 0;
 
-    do {
-        printf("\n\t.:MENU:.\n");
-        printf("\n1. Crear");
-        printf("\n2. Agregar");
-        printf("\n3. Visualizar");
-        printf("\n4. Salir");
-        printf("\nOpción : ");
-        scanf("%i", &opc);
+    fpointer = fopen("Productos.txt", "r");
+    Eliminados = fopen("temp.txt", "w");
 
-        switch (opc) {
-            case 1:
-                crear();
-                break;
-            case 2:
-                agregar();
-                break;
-            case 3:
-                visualizar();
-                break;
+    if (fpointer == NULL || Eliminados == NULL) {
+        fprintf(stderr, "Error al abrir archivos.\n");
+        return;
+    }
+
+    while ((c = fgetc(fpointer)) != EOF) {
+        if (c == '\n') {
+            char buffer[50];
+            fgets(buffer, sizeof(buffer), fpointer);
+
+            if (strstr(buffer, nombre) == NULL) {
+                fprintf(Eliminados, "\n%s", buffer);
+            } else {
+                found = 1;
+            }
+        } else {
+            putchar(c);
         }
+    }
 
-    } while (opc != 4);
+    fclose(fpointer);
+    fclose(Eliminados);
 
-    return 0;
+    remove("Productos.txt");
+    rename("temp.txt", "Productos.txt");
+
+    if (found) {
+        printf("\nProducto eliminado exitosamente.\n");
+    } else {
+        printf("\nProducto no encontrado.\n");
+    }
 }
+
+
+    int main() {
+        int opcion;
+        char nombre[50];
+
+        do {
+            printf("\n\t--MENU--\n");
+            printf("\n1. Crear");
+            printf("\n2. Agregar");
+            printf("\n3. Listar");
+            printf("\n4. Eliminar");
+            printf("\n5. Salir");
+            printf("\nOpción : ");
+            scanf("%i", &opcion);
+
+            switch (opcion) {
+                case 1:
+                    ingresar_productos();
+                    break;
+
+                case 2:
+                    agregar_productos();
+                    break;
+
+                case 3:
+                    listar_productos();
+                    break;
+
+                case 4:
+                    printf("\nIngrese el nombre del producto a eliminar: ");
+                    scanf("%s", nombre);
+                    eliminar_producto(nombre);
+                    break;
+            }
+        } while (opcion != 5);
+
+        return 0;
+    }
